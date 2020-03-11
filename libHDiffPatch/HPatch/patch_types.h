@@ -38,7 +38,7 @@ extern "C" {
 
 #define HDIFFPATCH_VERSION_MAJOR    3
 #define HDIFFPATCH_VERSION_MINOR    0
-#define HDIFFPATCH_VERSION_RELEASE  1
+#define HDIFFPATCH_VERSION_RELEASE  9
 
 #define _HDIFFPATCH_VERSION          HDIFFPATCH_VERSION_MAJOR.HDIFFPATCH_VERSION_MINOR.HDIFFPATCH_VERSION_RELEASE
 #define _HDIFFPATCH_QUOTE(str) #str
@@ -68,7 +68,9 @@ typedef int hpatch_BOOL;
 #define     hpatch_FALSE    0
 #define     hpatch_TRUE     ((hpatch_BOOL)(!hpatch_FALSE))
 
-#define _hpatch_align_lower(p,align2pow) (((size_t)(p)) & (~(size_t)((align2pow)-1)))
+    
+#define _hpatch_align_type_lower(uint_type,p,align2pow) (((uint_type)(p)) & (~(uint_type)((align2pow)-1)))
+#define _hpatch_align_lower(p,align2pow) _hpatch_align_type_lower(size_t,p,align2pow)
 #define _hpatch_align_upper(p,align2pow) _hpatch_align_lower(((size_t)(p))+((align2pow)-1),align2pow)
     
     typedef void* hpatch_TStreamInputHandle;
@@ -126,6 +128,24 @@ typedef int hpatch_BOOL;
                              const unsigned char* mem,const unsigned char* mem_end);
     void mem_as_hStreamOutput(hpatch_TStreamOutput* out_stream,
                               unsigned char* mem,unsigned char* mem_end);
+    
+    static hpatch_inline
+    hpatch_BOOL hpatch_deccompress_mem(hpatch_TDecompress* decompressPlugin,
+                                       const unsigned char* code,const unsigned char* code_end,
+                                       unsigned char* out_data,unsigned char* out_data_end){
+        hpatch_decompressHandle dec=0;
+        hpatch_BOOL result,colose_rt;
+        hpatch_TStreamInput  codeStream;
+        mem_as_hStreamInput(&codeStream,code,code_end);
+        dec=decompressPlugin->open(decompressPlugin,(out_data_end-out_data),
+                                   &codeStream,0,codeStream.streamSize);
+        if (dec==0) return hpatch_FALSE;
+        result=decompressPlugin->decompress_part(dec,out_data,out_data_end);
+        colose_rt=decompressPlugin->close(decompressPlugin,dec);
+        assert(colose_rt);
+        return result;
+    }
+    
     
     typedef struct TStreamInputClip{
         hpatch_TStreamInput         base;

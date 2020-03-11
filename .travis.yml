@@ -20,10 +20,10 @@ script:
 - make LZMA=0
 - make clean
 - git clone https://github.com/sisong/lzma.git ../lzma
+- make DIR_DIFF=0
+- make clean
 - make
 - make clean
-- cd ../lzma
-- git checkout -b pthread origin/pthread
 - cd ../HDiffPatch
 - git clone https://github.com/sisong/libmd5.git ../libmd5
 - make MT=1 MD5=1
